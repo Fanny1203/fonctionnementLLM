@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>LLM Simplifié</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Inclusion de p5.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.js"></script>
+    <script src="sketch.js" defer></script>
+  </head>
+  <body>
+    <div class="container">
+      <div id="step-title" class="step-title"></div>
+
+      <div id="recolte" class="recolte-container"></div>
+      
+      <div id="training-controls" class="training-controls">
+        <label for="phrase-select" class="phrase-select-label">Choisissez une phrase :</label>
+        <div class="training-controls-row">
+          <select id="phrase-select" class="phrase-select">
+            <option value="0" selected>Le chat dort sur</option>
+            <option value="1">Marie mange une</option>
+            <option value="2">Il fait beau</option>
+            <option value="3">Le soleil brille dans</option>
+          </select>
+          <button onclick="calculate()" id="calculate-btn" class="action-btn">Calculer la suite</button>
+          <button onclick="correct()" id="correct-btn" class="action-btn" disabled>Corriger le modèle</button>
+        </div>
+        <div id="training-canvas-container" class="canvas-container"></div>
+      </div>
+
+      <div id="utilisation" class="utilisation-container">
+        <div class="utilisation-controls">
+          <button onclick="calculatePhrase()" id="calculate-usage-btn" class="action-btn">Calculer la suite</button>
+          <button onclick="selectWord()" id="select-word-btn" class="action-btn">Tirer au sort</button>
+        </div>
+        <div id="usage-canvas-container" class="canvas-container"></div>
+      </div>
+
+      <div id="explanation" class="explanation-box">
+        <!-- Le texte explicatif sera inséré ici par JavaScript -->
+      </div>
+      
+      <div class="navigation-controls">
+        <button onclick="nextStep(-1)" class="nav-btn">← Précédent</button>
+        <button onclick="nextStep(1)" class="nav-btn">Suivant →</button>
+      </div>
+    </div>
+  </body>
+</html>
