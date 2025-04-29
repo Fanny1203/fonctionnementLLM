@@ -59,22 +59,29 @@ const TITLES = {
 };
 
 const MESSAGES = {
-  recolte: "Lors de la récolte, on organise un tableau entrées-sorties",
+  recolte: `Lors de la collecte, on extrait automatiquement de très nombreux exemples à partir de textes (livres, Wikipedia, forums, sites web, etc.)
+Chaque exemple est une paire entrée-sortie : un début de phrase et sa suite.
+On parle d'apprentissage auto-supervisé car ces paires sont construites automatiquement, sans étiquettes fournies par un humain.
+On ne met ici que quelques exemples de "paires". Dans les modèles récents, il y a des milliers de milliards de paires (sous-estimation).`,
   entrainement: {
-    initial: "On va essayer de trouver une fonction qui calcule correctement le mot suivant.",
-    prempiercalcul : "Au premier passage, la distribution calculée est très mauvaise car on part d'une fonction aléatoire",
-    calculssuivants: "La distribution s'améliore au fil des entraînements.",
+    initial: "On va essayer de trouver une fonction qui calcule correctement le mot suivant. <br/>Ici, on a représenté une fonction avec 9 paramètres, en mars 2025, les modèles les plus utilisés en comptent plusieurs centaines de milliards.<br/>",
+    prempiercalcul : "Au premier passage, la distribution calculée est très mauvaise, car les paramètres initiaux sont aléatoires",
+    calculssuivants: "La distribution s'améliore au fil des entraînements. <br/>Dans les modèles récents, il peut y avoir de l'ordre d'un million d'itérations.",
     correction: "La correction ajuste les poids pour réduire l'erreur."
   },
   utilisation: {
-    initial: "A la fin de l'entraînement, on a un modèle fixe qu'on peut utiliser sur des débuts de phrases que le modèle ne connaît pas et dont il calcule la suite avec la même formule.",
-    calcul: "Le réseau calcule la distribution des mots suivants. Il peut paraître étonnant, et fascinant !, que les mots prédits soient raisonnables alors qu'il n'avait jamais vu la phrase avant.",
-    selection: (mot) => `Le mot <span class="highlighted-word">${mot}</span> a été tiré au sort et ajouté à la phrase en entrée.`
+    initial: "Une fois entraîné, le modèle ne bouge plus et on peut l'utiliser pour compléter n'importe quel début de phrase, même s'il ne l’a jamais vu, en utilisant la même fonction.",
+    calcul: "Le réseau calcule la distribution des mots suivants. Il peut paraître étonnant (et fascinant !) que les mots prédits soient raisonnables alors que le réseau n'avait jamais vu cette phrase avant.",
+    selection: (mot) => `Le mot *<span class="highlighted-word">${mot}</span>* a été tiré au sort et ajouté à la phrase en entrée.`
   },
-  fin: `Racapitulions :  
-  <br/>1) On a récolté des données sous la forme d'un tableau d'entrées et sorties. 
-  <br/>2) Puis, on a entrainé un modèle, c'est-à-dire cherché une fonction qui fasse correspondre les entrées et les sorties sur nos données. 
-  <br/>3) Enfin, on a utilisé ce modèle sur des phrases que le modèle ne connaissait pas.`
+  fin: `# Récapitulons :  
+  Une particularité de ce qu'on appelle les IA, c'est qu'on n'écrit pas directement un programme, mais on le "cherche". 
+  Dans le cas d'un LLM, on cherche une fonction qui calcule correctement le mot suivant et pour trouver cette fonction, on part d'une fonction initiale aléatoire et on utilise un système d'essais-erreurs pour qu'elle s'améliore au fur et à mesure.
+  1) Récolte : on a extrait automatiquement des paires entrée-sortie à partir de textes.
+  2) Entraînement : on a entraîné un modèle, c’est-à-dire ajusté les paramètres d'une fonction pour qu’elle prédise correctement la sortie à partir de l’entrée sur ces paires collectées.
+  3) Utilisation : on utilise ensuite le modèle obtenu pour compléter des phrases nouvelles.
+  # Et après ?
+  Après cette étape, le modèle n'est pas directement utilisable. Il doit être *fine-tuné* pour ne pas se contenter de compléter des phrases mais répondre à des questions.`
 };
 
 const DATA = {
@@ -131,8 +138,10 @@ const dom = {
   calculateBtn: document.getElementById('calculate-btn'),
   correctBtn: document.getElementById('correct-btn'),
   calculateUsageBtn: document.getElementById('calculate-usage-btn'),
+  selectWordBtn: document.getElementById('select-word-btn'),
   phraseSelect: document.getElementById('phrase-select'),
-  selectWordBtn: document.getElementById('select-word-btn')
+  prevBtn: document.getElementById('prev-btn'),
+  nextBtn: document.getElementById('next-btn')
 };
 
 /*************************************************
@@ -188,7 +197,13 @@ function initNetworkBuffer() {
  * Fonctions DOM & UI
  *************************************************/
 function updateExplanation(text) {
-  dom.explanation.innerHTML = text;
+  // Configurer marked pour permettre HTML dans le markdown
+  marked.setOptions({
+    breaks: true,
+    sanitize: false
+  });
+  // Convertir le markdown en HTML
+  dom.explanation.innerHTML = marked.parse(text);
 }
 
 function updateStepTitle(text) {
@@ -222,6 +237,9 @@ function updateUI() {
       dom.usageCanvasContainer.style.display = 'none';
       dom.calculateBtn.style.display = 'none';
       updateExplanation(MESSAGES.recolte);
+      // Cacher le bouton précédent sur la première étape
+      dom.prevBtn.style.display = 'none';
+      dom.nextBtn.textContent = 'Suivant →';
       break;
     case STEPS.ENTRAINEMENT:
       updateStepTitle(TITLES.entrainement);
@@ -242,6 +260,8 @@ function updateUI() {
         updateExplanation(MESSAGES.entrainement.correction);
       }
       updateButtonStates();
+      dom.prevBtn.style.display = 'block';
+      dom.nextBtn.textContent = 'Suivant →';
       break;
     case STEPS.UTILISATION:
       updateStepTitle(TITLES.utilisation);
@@ -264,6 +284,8 @@ function updateUI() {
           break;
       }
       updateButtonStates();
+      dom.prevBtn.style.display = 'block';
+      dom.nextBtn.textContent = 'Suivant →';
       break;
     case STEPS.FIN:
       updateStepTitle(TITLES.fin);
@@ -277,6 +299,9 @@ function updateUI() {
       dom.calculateUsageBtn.style.display = 'none';
       dom.phraseSelect.style.display = 'none';
       updateExplanation(MESSAGES.fin);
+      // Changer le texte du bouton suivant sur la dernière étape
+      dom.nextBtn.textContent = 'Refaire l\'expérience';
+      dom.prevBtn.style.display = 'block';
       break;
   }
 }
@@ -305,6 +330,16 @@ function createDataTable() {
     row.appendChild(outputCell);
     tbody.appendChild(row);
   });
+  
+  const row = document.createElement('tr');
+  const inputCell = document.createElement('td');
+  const outputCell = document.createElement('td');
+  inputCell.textContent = "...";
+  outputCell.textContent = "...";
+  row.appendChild(inputCell);
+  row.appendChild(outputCell);
+  tbody.appendChild(row);
+
   table.appendChild(tbody);
   container.appendChild(table);
 }

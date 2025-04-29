@@ -84,10 +84,27 @@ body {
   color: #333;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   min-height: 60px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  line-height: 1.5;
+  line-height: 1.6;
+}
+
+.explanation-box p {
+  margin: 1em 0;
+}
+
+.explanation-box h1 {
+  margin-top: 1.5em;
+  margin-bottom: 0.8em;
+  font-size: 1.5em;
+  color: #2196F3;
+}
+
+.explanation-box ol {
+  margin: 1em 0;
+  padding-left: 1.2em;
+}
+
+.explanation-box li {
+  margin: 0.5em 0;
 }
 
 .explanation-box .highlighted-word {
