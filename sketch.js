@@ -81,7 +81,7 @@ On ne met ici que quelques exemples de "paires". Dans les modèles récents, il 
   2) Entraînement : on a entraîné un modèle, c’est-à-dire ajusté les paramètres d'une fonction pour qu’elle prédise correctement la sortie à partir de l’entrée sur ces paires collectées.
   3) Utilisation : on utilise ensuite le modèle obtenu pour compléter des phrases nouvelles.
   # Et après ?
-  Après cette étape, le modèle n'est pas directement utilisable. Il doit être *fine-tuné* pour ne pas se contenter de compléter des phrases mais répondre à des questions.`
+  Après cette étape, le modèle n'est pas directement utilisable. On parle d'un *modèle de fondation* Il doit alors être *fine-tuné* pour ne pas se contenter de compléter des phrases mais répondre à des questions.`
 };
 
 const DATA = {
@@ -482,6 +482,12 @@ function cleanupStep() {
 }
 
 function nextStep(k = 1) {
+  // Si on est sur la dernière étape et qu'on avance, retourner à l'index
+  if (state.globalStep === STEPS.FIN && k > 0) {
+    window.location.href = 'index.html';
+    return;
+  }
+  
   cleanupStep();
   const stepsCount = Object.keys(STEPS).length;
   state.globalStep = (state.globalStep + k + stepsCount) % stepsCount; // ajout + stepsCount sinon -1 reste à -1
